@@ -1,0 +1,33 @@
+
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    class NetRequest : HttpRequest
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        private NetOperation NetOperation;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public NetRequest()
+        {
+            NetOperation = new NetOperation();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="postData"></param>
+        /// <param name="httpTag"></param>
+        public override void StartRequestWithType(string postData, string httpTag, IResultsHandler client) {
+            //url
+            string urlString = string.Format("{0}{1}{2}{3}",
+                                             NetConfig.V_BASEURL, "{0}",
+                                             NetConfig.DEBUG_PLACE,
+                                             NetConfig.MD5_PLACE);
+
+            switch (httpTag) {

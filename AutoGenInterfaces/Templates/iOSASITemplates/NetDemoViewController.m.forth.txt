@@ -1,0 +1,22 @@
+                
+            default:
+                break;
+        }
+    } @catch (NSException *exception) {
+        
+    } @finally {
+        
+    }
+}
+- (void)RequestFailedWithNetTag:(NetTag)netTag {
+    NSLog(@"Request Failed : %ld", (long)netTag);
+}
+
+- (void)DownloadFileSuccessWithNetTag:(NetTag)netTag FilePath:(NSString *)path {
+    NSLog(@"Download File Success : %@", path);
+}
+- (void)DownloadFileFailedWithNetTag:(NetTag)netTag FileName:(NSString *)fileName {
+    NSLog(@"Download File Failed : %@", fileName);
+}
+
+@end

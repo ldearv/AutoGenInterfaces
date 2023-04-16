@@ -1,0 +1,28 @@
+﻿ extends Controller
+{
+	public function actionIndex()
+	{
+		$this->render('index');
+	}
+
+	/**
+	 * @return array action filters
+	 */
+	public function filters()
+	{
+		return array(
+			//'accessControl', // perform access control for CRUD operations
+			'interfaceAccessControl + SearchAuthzLog GetWaitingTasks GetTaskInfo GetRemindLogs ChangeRemindStatus DealExpTask',
+		);
+	}
+
+	//TODO: 修改记录日志的方法
+	//记录日志
+	public function writeSysLog($OperId,$comment,$mac,$public_ip){
+		//$time = date('Y-m-d H:i:s');
+		//$syssql = "insert into logTable(operator,op_time,comment,public_ip,mac)value('".$OperId."','".$time."','".$comment."','".$public_ip."','".$mac."');";
+		//if(!strpos($syssql,'authz/')){
+		//	Yii::app()->db->createCommand($syssql)->execute();
+		//}
+	}
+

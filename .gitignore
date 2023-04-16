@@ -88,3 +88,15 @@ fastlane/test_output
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
+# dotnet
+obj/
+bin/
+
+# macOS
+.DS_Store
+
+
+# project
+Result/
+Pods/

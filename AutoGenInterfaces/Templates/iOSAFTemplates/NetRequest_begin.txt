@@ -1,0 +1,88 @@
+//
+//  NetRequest.m
+//  Created by AutoIF
+//
+
+#import "MD5+AES.h"
+
+#import "NetConfig.h"
+
+#import "NetRequest.h"
+
+#import "AFNetworking.h"
+
+@implementation NetRequest
+
+- (NSDictionary *)dictionaryWithJsonString:(NSString *)jsonString
+{
+    if (jsonString == nil) {
+        return nil;
+    }
+    
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *err;
+    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                        options:NSJSONReadingMutableContainers
+                                                          error:&err];
+    if(err) {
+        return nil;
+    }
+    return dic;
+}
+
+- (void)POST:(nonnull NSString *)URLString
+  parameters:(nullable id)parameters
+     success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
+     failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure {
+    AFHTTPSessionManager* afmanager = [AFHTTPSessionManager manager];
+    afmanager.requestSerializer = [AFJSONRequestSerializer serializer];
+    afmanager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    [afmanager POST:URLString
+         parameters:[self dictionaryWithJsonString:parameters]
+           progress:nil
+            success:success failure:failure
+    ];
+}
+
+-  (void)Download:(nonnull NSString *)URLString
+      destination:(NSURL * _Nonnull (^_Nullable)(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response))destination
+completionHandler:(void (^_Nonnull)(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error))completionHandler {
+    
+    AFHTTPSessionManager* afmanager = [AFHTTPSessionManager manager];
+    afmanager.requestSerializer = [AFHTTPRequestSerializer serializer];
+    afmanager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
+    NSURLSessionDownloadTask *task =
+    [afmanager downloadTaskWithRequest:request
+                              progress:nil
+                           destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+        if (destination) {
+            return destination(targetPath, response);
+        } else {
+            NSString *cachePath=NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject;
+            NSString *fileName=[cachePath stringByAppendingPathComponent:response.suggestedFilename];
+            return [NSURL fileURLWithPath:fileName];
+        }
+    } completionHandler:completionHandler];
+    [task resume];
+}
+
+- (void)requestWithTag:(NetTag)httpTag
+              postData:(NSString *)postDate
+               success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
+               failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure {
+    NSString *jsonString = postDate;
+    NSString* addMd5String = [NSString stringWithFormat:@"%@%@", jsonString, MD5_KEY];
+    NSString *baseURL = V_BASEURL_pro;
+    if (IsTestURL) {
+        baseURL = V_BASEURL_test;
+    }
+    
+    if (httpTag == Tag_mapTools_padQueryTask || httpTag == Tag_mapTools_padNoticeTask) {
+        baseURL = @"http://192.168.1.98:7000/index.php?r=";
+    }
+    
+    NSString *urlString = [NSString stringWithFormat:@"%@%@%@%@%@", baseURL, @"%@", DEBUG_PLACE, MD5_PLACE, [addMd5String md5]];
+    
+    switch (httpTag) {

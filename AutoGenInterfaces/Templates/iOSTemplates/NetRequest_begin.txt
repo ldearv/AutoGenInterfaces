@@ -1,0 +1,127 @@
+//
+//  NetRequest.m
+//  Created by AutoIF
+//
+
+#import "MD5+AES.h"
+
+#import "NetConfig.h"
+
+#import "NetRequest.h"
+
+
+
+@implementation NetRequest
+
+- (NSDictionary *)dictionaryWithJsonString:(NSString *)jsonString
+{
+    if (jsonString == nil) {
+        return nil;
+    }
+    
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *err;
+    NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                        options:NSJSONReadingMutableContainers
+                                                          error:&err];
+    if(err) {
+        return nil;
+    }
+    return dic;
+}
+
+- (void)POST:(nonnull NSString *)URLString
+  parameters:(nullable id)parameters
+     success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
+     failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure {
+    NSString* urlString = [URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    NSURL* url = [[NSURL alloc] initWithString:urlString];
+    NSMutableURLRequest* request = [[NSMutableURLRequest alloc] initWithURL:url];
+    request.HTTPMethod = @"POST";
+    request.HTTPBody = [parameters dataUsingEncoding:NSUTF8StringEncoding];
+    NSURLSession* session = [NSURLSession sharedSession];
+    __block NSURLSessionDataTask *dataTask = nil;
+    dataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (error != nil) {
+            // failue
+            if (failure != nil) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    failure(dataTask, error);
+                });
+            }
+        } else {
+            // success
+            if (success != nil) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    success(dataTask, data);
+                });
+            }
+        }
+    }];
+    [dataTask resume];
+    
+}
+
+-  (void)Download:(nonnull NSString *)URLString
+      destination:(NSURL * _Nonnull (^_Nullable)(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response))destination
+completionHandler:(void (^_Nonnull)(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error))completionHandler {
+    NSString* urlString = [URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:urlString]];
+    __block NSURLSessionDownloadTask *task = nil;
+    NSURLSession* session = [NSURLSession sharedSession];
+    task = [session downloadTaskWithRequest:request completionHandler:^(NSURL * _Nullable location, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (!error) {
+            // 下载成功
+            // 注意 location是下载后的临时保存路径, 需要将它移动到需要保存的位置
+            NSError *saveError;
+            // 创建一个自定义存储路径
+            NSURL *saveURL = nil;
+            if (destination != nil) {
+                saveURL = destination(location, response);
+            } else {
+                NSString *cachePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+                NSString *savePath = [cachePath stringByAppendingPathComponent:@"fileName"];
+                saveURL = [NSURL fileURLWithPath:savePath];
+            }
+            // 文件复制到cache路径中
+            [[NSFileManager defaultManager] copyItemAtURL:location toURL:saveURL error:&saveError];
+            if (completionHandler != nil) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completionHandler(response, saveURL, saveError);
+                });
+            } else {
+                if (!saveError) {
+                    NSLog(@"保存成功");
+                } else {
+                    NSLog(@"error is %@", saveError.localizedDescription);
+                }
+            }
+        } else {
+            if (completionHandler != nil) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    completionHandler(response, nil, error);
+                });
+            }
+        }
+    }];
+    [task resume];
+}
+
+- (void)requestWithTag:(NetTag)httpTag
+              postData:(NSString *)postDate
+               success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
+               failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure {
+    NSString *jsonString = postDate;
+    NSString* addMd5String = [NSString stringWithFormat:@"%@%@", jsonString, MD5_KEY];
+    NSString *baseURL = V_BASEURL_pro;
+    if (IsTestURL) {
+        baseURL = V_BASEURL_test;
+    }
+    
+    if (httpTag == Tag_mapTools_padQueryTask || httpTag == Tag_mapTools_padNoticeTask) {
+        baseURL = @"http://192.168.1.98:7000/index.php?r=";
+    }
+    
+    NSString *urlString = [NSString stringWithFormat:@"%@%@%@%@%@", baseURL, @"%@", DEBUG_PLACE, MD5_PLACE, [addMd5String md5]];
+    
+    switch (httpTag) {

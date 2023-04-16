@@ -1,0 +1,32 @@
+}
+
+#pragma mark - Network Delegate
+- (void)requestFinished:(ASIHTTPRequest *)request{
+    
+    NSString *responseString = [request responseString];
+    NSLog(@"request suc, requestTag:%ld, result:%@", (long)request.tag, responseString);
+    if ([[[request userInfo] objectForKey:kDownloadFileKey] isEqualToString:kDownloadFile]) {
+        [self DownloadFileSuccessWithNetTag:request.tag FilePath:[NetRequest getFileInDocumentsSrcWithFileName:[[request userInfo] objectForKey:kDownloadFileName]]];
+        
+    }else{
+        if ([responseString containsString:@".SUC."]) {
+            [self RequestSuccessWithNetTag:request.tag ReceiveData:responseString];
+        } else {
+            [self RequestErrorWithNetTag:request.tag ReceiveData:responseString];
+        }
+    }
+    
+}
+
+- (void)requestFailed:(ASIHTTPRequest *)request{
+    NSLog(@"request failed, requestTag:%ld", (long)request.tag);
+    if ([[[request userInfo] objectForKey:kDownloadFileKey] isEqualToString:kDownloadFile]) {
+        [self DownloadFileFailedWithNetTag:request.tag FileName:[[request userInfo] objectForKey:kDownloadFileName]];
+    } else {
+        [self RequestFailedWithNetTag:request.tag];
+    }
+}
+- (void)RequestSuccessWithNetTag:(NetTag)netTag ReceiveData:(NSString *)data {
+    @try {
+        //NSError* err = nil;
+        switch (netTag) {

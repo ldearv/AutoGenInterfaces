@@ -1,0 +1,47 @@
+    }
+
+    [self postDataToServerWithData:postDate urlString:urlString requestTag:httpTag delegate:delegate];
+}
+- (void)postDataToServerWithData:(NSString *)postString urlString:(NSString *)urlString requestTag:(NSInteger )requestTag delegate:(id<ASIHTTPRequestDelegate>)delegate {
+    NSData *postData = [postString dataUsingEncoding:NSUTF8StringEncoding];
+    NSURL* url = [NSURL URLWithString:urlString];
+#ifdef Debug_net_url
+    NSLog(@"urlString : %@", urlString);
+#endif
+#ifdef Debug_net_postData
+    NSLog(@"jsonString : %@", postString);
+#endif
+    ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+    [request  setPostBody:[NSMutableData dataWithData:postData]];
+    [request setDelegate:delegate];
+    [request setTag:requestTag];
+    [request setTimeOutSeconds:60];
+    [request startAsynchronous];
+}
+
++ (NSString *)getFileInDocumentsSrcWithFileName:(NSString *)fileName{
+    
+    NSString *path = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    NSString *savePath = [path stringByAppendingPathComponent:fileName];
+    return savePath;
+}
+
+- (void)downloadFileWithTag:(NSInteger)httpTag urlString:(NSString *)urlString fileName:(NSString *)fileName  Delegate:(id<ASIHTTPRequestDelegate>)delegate {
+    NSString *path = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    
+    NSURL *url = [NSURL URLWithString:urlString];
+#ifdef Debug_net_url
+    NSLog(@"urlString : %@", urlString);
+#endif
+    ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+    request.delegate = delegate;
+    request.tag = httpTag;
+    [request setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:fileName,kDownloadFileName,kDownloadFile,kDownloadFileKey,nil]];
+    NSString *savePath = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"%@",fileName]];
+    NSString *tempPath = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.temp",fileName]];
+    [request setDownloadDestinationPath:savePath];
+    [request setTemporaryFileDownloadPath:tempPath];
+    [request setAllowResumeForFileDownloads:NO];
+    [request startAsynchronous];
+}
+@end

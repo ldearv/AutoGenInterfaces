@@ -1,0 +1,205 @@
+<?php
+/**
+ * Controller is the customized base controller class.
+ * All controller classes for this application should extend from this base class.
+ */
+date_default_timezone_set('PRC');
+class Controller extends CController
+{
+	/**
+	 * @var string the default layout for the controller view. Defaults to '//layouts/column1',
+	 * meaning using a single column layout. See 'protected/views/layouts/column1.php'.
+	 */
+	public $layout='//layouts/column1';
+	/**
+	 * @var array context menu items. This property will be assigned to {@link CMenu::items}.
+	 */
+	public $menu=array();
+	/**
+	 * @var array the breadcrumbs of the current page. The value of this property will
+	 * be assigned to {@link CBreadcrumbs::links}. Please refer to {@link CBreadcrumbs::links}
+	 * for more details on how to specify this property.
+	 */
+	public $breadcrumbs=array();
+
+	private $reqFunc;
+	private $reqData;
+	
+	/**
+	 * get post src data
+	 */
+	public function getHttpRequestData()
+	{
+		return file_get_contents("php://input");
+	}
+	
+	/**
+	 * get post src data
+	 */
+	public function getHttpRequestArray()
+	{
+		$data = $this->getHttpRequestData();
+		$this->reqFunc = $_GET['r'];
+		$this->reqData = $data;
+		return CJSON::decode($data);
+	}
+	
+	/**
+	 * Return result
+	 */
+	public function validateOA($model)
+	{
+		$result = array();
+		if(!$model->validate()) {
+			$error = $model->getErrors();
+			foreach ($error as $key=>$value)
+			{
+				$result = array_merge_recursive($result,$value);
+			}
+			return $result;
+		} else {
+			return array();	
+		}
+	}
+
+	/**
+	 * Return result
+	 */
+	public function returnResult($result,$data=array())
+	{
+		$returnResult = array();
+		$returnResult['Result'] = $result;
+		$returnResult = array_merge_recursive($returnResult,$data);
+		
+		$retdata = CJSON::encode($returnResult);
+		$updatetime = date('Y-m-d H:i:s');
+		//--------------------------------------------------
+		$msg = "$this->reqFunc|$this->reqData|$retdata|$updatetime";
+		$this->writeSyslog($msg);
+		//--------------------------------------------------
+		header("Content-type:application/json");
+		echo CJSON::encode($returnResult);
+	}
+	/*
+	 * Write syslog
+	 */
+	 /* TODO: 修改log的tag和文件路径*/
+	public function writeSyslog($msg,$tag='techserv_service_log'){
+		try {
+			if(!openlog($tag, LOG_NDELAY|LOG_CONS, LOG_USER)){
+		      Yii::Log('can not open log--'.$msg,'warning');
+		      return false;
+		    }
+		    if(!syslog(LOG_INFO, $msg))
+		    {
+		      Yii::Log('write log error--'.$msg,'warning');
+		      closelog();
+		      return false;
+		    }
+		    closelog();
+		    $debug=Yii::app()->params['debug'];
+		    if($debug=='1'){
+		    	file_put_contents('/data/logs/techserv_service_log/debug.log', date("Y-m-d H:i:s")." debug-log: ".$msg."\n",FILE_APPEND);
+		    }
+		    return true;
+		}
+		catch(Exception $ex){
+			return false;
+		}
+		
+	}
+	
+	/**
+	 * When an interface type request , this filter will check it's access rules
+	 */
+	public function filterInterfaceAccessControl($filterChain) 
+	{
+		//$filterChain->run();
+		$parms_m=isset($_GET['M'])?$_GET['M']:false;
+		$parms_debug=isset($_GET['DEBUG'])?$_GET['DEBUG']:false;
+		($parms_debug==1) ? Yii::beginProfile('100001') :null;
+		if ($parms_m)
+		{
+			$md5string = $parms_m;
+			echo ($parms_debug==1) ? "1.md5string<BR>".$md5string."<BR>" : "";
+		} else {
+			echo "Permission Denied";
+			exit;	
+		}
+		
+		$request_json = $this->getHttpRequestData();
+		echo ($parms_debug==1) ? "2.request_json<BR>".$request_json."<BR>":"";
+		if (md5($request_json."PACIFIC") == $md5string )
+		{
+			echo ($parms_debug==1) ? "3.check<BR>".$request_json."<BR><BR>" : "";
+			$filterChain->run();
+		}
+	}
+
+	/**
+	 * settype for array to string
+	 */
+	public static function typeToString($array) 
+	{	
+		if(is_integer($array) or is_float($array))
+		{
+			settype($array,"string");
+		}	
+		if(is_array($array))
+		{
+			foreach($array as &$v)
+			{	
+				if(is_integer($v) or is_float($v))
+				{
+					settype($v,"string");
+				}	
+			}
+		}
+		unset($v);
+		return $array;
+		
+	}
+
+	/**
+	 * set type string to int
+	 */
+	public function setStringToInt($str) 
+	{		
+		$arr = explode(".",$str);
+		$str_2 = implode("",$arr);
+		settype($str_2,"integer");
+		$int = $str_2;
+		return $int;
+	}
+
+	/**
+	 * set type int to string
+	 */
+	public function setIntToString($int) 
+	{		
+		settype($int,"string");
+		$str = $int;
+		$str_a = substr($str,0,strlen($str)-6); 
+		$str_b = substr($str,strlen($str)-6);
+		$str_new = $str_a.".".$str_b;
+		return $str_new;
+	}
+
+	public function get_client_ip()
+	{ 
+	    if(getenv('HTTP_X_FORWARDED_FOR'))
+	    { 
+			$client_ip = getenv('HTTP_X_FORWARDED_FOR');
+	    } elseif(getenv('HTTP_CLIENT_IP'))
+		{ 
+			$client_ip = getenv('HTTP_CLIENT_IP'); 
+	    } elseif(getenv('REMOTE_ADDR'))
+	    {
+			$client_ip = getenv('REMOTE_ADDR'); 
+	    } else
+	    {
+			$client_ip = $_SERVER['REMOTE_ADDR'];
+	    } 
+	    return $client_ip; 
+	}
+}

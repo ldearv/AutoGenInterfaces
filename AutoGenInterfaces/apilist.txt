@@ -1,0 +1,98 @@
+﻿>>
+【C1】无参数测试接口1 返回data是字符串
+Interface No. C1
+Common/noparam1
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']
+>>
+【C2】无参数测试接口2 返回data是字符串数组
+Interface No. C2
+Common/noparam2
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']
+   {
+      ['']
+   }
+>>
+【C3】无参数测试接口3 返回data是对象
+Interface No. C3
+Common/noparam3
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']['name'] 名字
+   ['data']['age'] 年龄
+>>
+【C4】无参数测试接口4 返回data是对象数组
+Interface No. C4
+Common/noparam4
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']
+   {
+      ['name'] 名字
+      ['age'] 年龄
+   }
+>>
+【C5】有参数测试接1 参数是字符串
+Interface No. C5
+Common/hasparam1
+POST:
+   ['param']
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']
+   {
+      ['']
+   }
+>>
+【C6】有参数测试接2 参数是字符串数组
+Interface No. C6
+Common/hasparam2
+POST:
+   ['params']
+   {
+      ['']
+   }
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']
+>>
+【C7】有参数测试接3 参数是字典
+Interface No. C7
+Common/hasparam3
+POST:
+   ['keyword']['param1']
+   ['keyword']['param2']
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']
+>>
+【C8】有参数测试接4 参数是多个字符串
+Interface No. C8
+Common/hasparam4
+POST:
+   ['name']
+   ['age']
+   ['city']
+返回状态码:
+   R.200 OK
+
+返回数据:
+   ['data']
+>>

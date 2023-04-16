@@ -1,0 +1,15 @@
+			}
+            //md5
+            string md5 = MD5Helper.ToMD5(string.Format("{0}{1}", postData, NetConfig.MD5_KEY));
+
+            NetOperation.Excutor = client;
+            Action<string, string, int> fun = NetOperation.GetWebContent;
+            fun.BeginInvoke(urlString + md5, postData, httpTag, FunCallback, fun);
+          
+        }
+
+        public void FunCallback(IAsyncResult ar) {
+            //(ar.AsyncState as Action<string, string, string>).EndInvoke(ar);
+        }
+    }
+}

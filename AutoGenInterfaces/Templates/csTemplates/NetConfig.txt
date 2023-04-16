@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Xml;
+
+namespace {0} {
+    public class NetConfig {
+        public const string DEBUG_PLACE = @"&DEBUG=0";
+        public const string MD5_PLACE = @"&M=";
+        public const string MD5_KEY = @"{1}";
+
+        public const string V_BASEURL_Test = "{2}";
+        public const string V_BASEURL_Release = "{3}";
+
+        public static string V_BASEURL {
+            get {
+                return V_BASEURL_Test;
+            }
+        }
+
+        static NetConfig() {
+
+        }
+
+    }
+}

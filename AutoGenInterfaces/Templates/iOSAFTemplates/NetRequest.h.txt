@@ -1,0 +1,18 @@
+//
+//  NetRequest.h
+//  Created by AutoIF
+//
+
+#import <Foundation/Foundation.h>
+
+#import "NetTags.h"
+
+@interface NetRequest : NSObject
+- (void)requestWithTag:(NetTag)httpTag
+              postData:(NSString *_Nonnull)postDate
+               success:(nullable void (^)(NSURLSessionDataTask * _Nullable task, id _Nullable responseObject))success
+               failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError * _Nullable error))failure;
+-  (void)Download:(nonnull NSString *)URLString
+      destination:(NSURL * _Nonnull (^_Nullable)(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response))destination
+completionHandler:(void (^_Nonnull)(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error))completionHandler;
+@end

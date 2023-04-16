@@ -1,0 +1,19 @@
+//
+//  NetRequest.h
+//  Created by AutoIF
+//
+
+#import <Foundation/Foundation.h>
+
+#import "NetTags.h"
+
+static NSString *const kDownloadFileName = @"File_Name";
+static NSString *const kDownloadFileKey = @"File_Type";
+static NSString *const kDownloadFile = @"File";
+
+@interface NetRequest : NSObject
+- (void)requestWithTag:(NetTag)httpTag postData:(NSString *)postDate Delegate:(id<ASIHTTPRequestDelegate>)delegate;
+- (void)downloadFileWithTag:(NSInteger)httpTag urlString:(NSString *)urlString fileName:(NSString *)fileName  Delegate:(id<ASIHTTPRequestDelegate>)delegate ;
+
++ (NSString *)getFileInDocumentsSrcWithFileName:(NSString *)fileName;
+@end

@@ -1,0 +1,25 @@
+//
+//  NetRequest.m
+//  Created by AutoIF
+//
+
+#import "ASIHTTPRequest.h"
+#import "MD5+AES.h"
+
+#import "NetConfig.h"
+
+#import "NetRequest.h"
+
+@implementation NetRequest
+- (void)requestWithTag:(NetTag)httpTag postData:(NSString *)postDate Delegate:(id<ASIHTTPRequestDelegate>)delegate
+{
+    NSString *jsonString = postDate;
+    NSString* addMd5String = [NSString stringWithFormat:@"%@%@", jsonString, MD5_KEY];
+    NSString *baseURL = V_BASEURL_pro;
+    if (IsTestURL) {
+        baseURL = V_BASEURL_test;
+    }
+    
+    NSString *urlString = [NSString stringWithFormat:@"%@%@%@%@%@", baseURL, @"%@", DEBUG_PLACE, MD5_PLACE, [addMd5String md5]];
+    
+    switch (httpTag) {

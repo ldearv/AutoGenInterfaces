@@ -1,0 +1,13 @@
+                
+            default:
+                break;
+        }
+    } @catch (NSException *exception) {
+        
+    } @finally {
+        
+    }
+}
+- (void)RequestErrorWithNetTag:(NetTag)netTag ReceiveData:(NSString *)data {
+    @try {
+        switch (netTag) {
